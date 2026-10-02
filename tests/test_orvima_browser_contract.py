@@ -25,7 +25,6 @@ import inspect
 import re
 import time
 from pathlib import Path
-from urllib.request import pathname2url
 
 import pytest
 
@@ -34,9 +33,9 @@ pytest.importorskip("sentinel", reason="sentinel not on path")
 
 from orvima.browser import BrowserController  # noqa: E402
 
+from errands.core import PlanContext  # noqa: E402
 from errands.orvima_bridge import OrvimaBrowser, ToolError  # noqa: E402
 from errands.sentinel_bridge import make_classifier  # noqa: E402
-from errands.core import PlanContext  # noqa: E402
 
 FIXTURE = Path(__file__).parent / "fixtures" / "form_page.html"
 FIXTURE_URL = FIXTURE.as_uri()

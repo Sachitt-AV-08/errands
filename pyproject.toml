@@ -28,6 +28,18 @@ where = ["src"]
 [tool.setuptools.package-data]
 errands = ["../recipes/*.json"]
 
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+# The same set orvima uses. Without a `select` here, ruff applies its full
+# default set, which flags pre-existing deliberate choices in this codebase -
+# `except Exception` in a runner whose whole job is to contain browser errors,
+# for one. Pinning the set means a lint run reports real regressions instead of
+# a backlog nobody agreed to.
+select = ["E", "F", "W", "I", "B", "UP"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 # Mirrors sentinel's, so `python -m pytest tests` works from a clean checkout
