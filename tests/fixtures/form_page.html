@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Account</title>
+</head>
+<body>
+  <h1>Sign in</h1>
+  <p id="status">awaiting input</p>
+
+  <form id="login" onsubmit="return false;">
+    <label for="email">Email</label>
+    <input id="email" name="identifier" type="text" autocomplete="off">
+
+    <label for="pw">Password</label>
+    <input id="pw" name="password" type="password">
+
+    <button id="go" type="button"
+            onclick="document.getElementById('status').textContent = 'accepted the click'">
+      Continue
+    </button>
+  </form>
+
+  <p id="detail">no orders</p>
+
+  <!-- A second target, so a test that clicks the wrong element is caught rather
+       than passing because the only element it ever clicks is the right one. -->
+  <button id="cancel" type="button"
+          onclick="document.getElementById('status').textContent = 'cancelled'">
+    Cancel
+  </button>
+</body>
+</html>

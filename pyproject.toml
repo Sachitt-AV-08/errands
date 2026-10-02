@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "errands"
+version = "0.1.0"
+description = "Narrow goals run as fixed, verified recipe sequences, gated per step."
+requires-python = ">=3.10"
+# Empty on purpose, and that is a design decision rather than an omission.
+# `core.py` imports nothing from Sentinel, so Errands runs with no ML
+# dependency present: steps still run, nothing is gated. Sentinel is needed only
+# for `errands.sentinel_bridge`, which is the single module that imports both
+# projects, so it is an optional extra rather than a hard requirement.
+dependencies = []
+
+[project.optional-dependencies]
+# The gate. Installs the classifier that decides whether a step needs a human.
+sentinel = ["sentinel>=0.1.0"]
+# The browser. Errands talks to orvima through `errands.orvima_bridge`.
+orvima = ["orvima>=0.1.0"]
+# What the test suite needs beyond the above.
+dev = ["sentinel>=0.1.0", "orvima>=0.1.0", "pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+errands = ["../recipes/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Mirrors sentinel's, so `python -m pytest tests` works from a clean checkout
+# without a hand-set PYTHONPATH. src first: the local tree wins over an
+# installed copy, which is what you want while editing.
+pythonpath = ["src", "tests"]

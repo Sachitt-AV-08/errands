@@ -15,10 +15,28 @@ from sentinel.policy import Policy
 from .core import PlanContext
 
 
+def _resolve_page_url(page_url: str | Callable[[], str] | None) -> str:
+    """Accept a URL, a callable returning one, or nothing.
+
+    The callable form is the one that matters: the URL is read per decision, so
+    a classifier built once still sees the right page after a navigation. But a
+    plain string is accepted too, because `OrvimaBrowser.url` is a property, so
+    `page_url=browser.url` is the natural thing to write and it is a string by
+    the time it arrives here. Calling that would raise `TypeError: 'str' object
+    is not callable` from inside `classify` - at decision time, on the first
+    gated action, with the traceback pointing nowhere near the wiring mistake.
+    """
+    if page_url is None:
+        return ""
+    if callable(page_url):
+        return page_url()
+    return str(page_url)
+
+
 def make_classifier(
     policy: Policy,
     *,
-    page_url: Callable[[], str] | None = None,
+    page_url: str | Callable[[], str] | None = None,
     item_resolver: Callable[[Mapping[str, object]], str] | None = None,
 ) -> Callable[[str, Mapping[str, Any], PlanContext], Any]:
     """Adapt `Policy.evaluate` to the signature `ErrandRunner` expects.
@@ -28,13 +46,16 @@ def make_classifier(
     context belongs to Errands and both a classifier and a human read it. The
     unused `Policy.plan_text` helper exists for callers that have loose strings
     rather than a context - orvima's gate, for one.
+
+    `page_url` may be a callable, for a URL that changes between steps, or a
+    plain string, for one that does not. See `_resolve_page_url`.
     """
 
     def classify(tool: str, args: Mapping[str, Any], context: PlanContext):
         return policy.evaluate(
             tool,
             dict(args or {}),
-            page_url=page_url() if page_url else "",
+            page_url=_resolve_page_url(page_url),
             item_resolver=item_resolver,
             plan=context.as_plan_text(),
         )

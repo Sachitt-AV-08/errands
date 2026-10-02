@@ -8,13 +8,22 @@ someone wrote and checked against a real site, and the only judgement call in
 the whole system is whether the goal is one of them.
 
 ```python
+from sentinel import Classifier, HashingEmbedder, Policy
+
 from errands import ErrandRunner, registry
+from errands.orvima_bridge import OrvimaBrowser
 from errands.sentinel_bridge import make_classifier
+
+controller = BrowserController(headless=True)     # orvima
+browser    = OrvimaBrowser(controller)
+policy     = Policy(Classifier(HashingEmbedder()))
 
 errands = registry("recipes/")
 runner  = ErrandRunner(
     browser,
-    classify=make_classifier(policy, page_url=browser.current_url),
+    # page_url is read per decision, so the classifier keeps seeing the right
+    # page after a navigation. A plain string also works for a fixed URL.
+    classify=make_classifier(policy, page_url=lambda: browser.url),
     approver=ask_a_human,
 )
 result = runner.run_goal("buy this item", errands)
@@ -117,7 +126,7 @@ around by a recipe that reaches past it.
 ## Tests
 
 ```
-python -m pytest tests -q          # 46 tests
+python -m pytest tests -q          # 75 tests
 ```
 
 `tests/test_end_to_end.py` is the one that matters: a real Sentinel `Policy`, the
@@ -130,6 +139,20 @@ wrong rule. `test_the_same_recipe_is_unrecognisable_as_a_purchase_without_plan_c
 uses a bare "Continue" on a non-transactional page, because anything with "pay"
 in the label or "/checkout" in the URL is already gated by existing rules and
 would prove nothing about plan context.
+
+`tests/test_orvima_browser_contract.py` is the only file that opens a real
+Chromium. The rest of the bridge is tested against `FakeController`, which is
+shaped like `BrowserController` by hand and rots silently: rename a verb in
+orvima and the rest of this suite stays green while the bridge is broken. This
+file reads the forwarded verbs out of the bridge's own source and binds them to
+the real signatures, so drift is a failure rather than a surprise. It is also the
+only test that would notice a click landing on the wrong element, and the only
+one pinning occlusion handling - a target under a sticky header is uncovered and
+clicked in well under a second rather than waiting out a timeout.
+
+Both files skip cleanly when orvima or Sentinel is not importable, so this suite
+still runs standalone. `core.py` needs neither, which is the point: without the
+gate installed, steps still run and nothing is gated.
 
 ## Measured, not assumed
 
@@ -159,8 +182,11 @@ does not decide.
 src/errands/core.py            match, PlanContext, Step, ErrandRunner
 src/errands/recipes.py         JSON/module loading, strict schema
 src/errands/sentinel_bridge.py the only module importing both projects
+src/errands/orvima_bridge.py   adapts orvima's BrowserController
 recipes/*.json                 place_order, cancel_subscription
 tests/support/shop.py          a scripted store
+tests/fixtures/form_page.html a local page for the browser contract test
+tests/test_orvima_browser_contract.py  the only test opening a real browser
 ```
 
 `core.py` imports nothing from Sentinel. `sentinel_bridge.py` is the only file
