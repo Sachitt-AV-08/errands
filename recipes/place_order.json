@@ -1,0 +1,66 @@
+{
+  "name": "place_order",
+  "description": "Buy one item and stop before the final charge. Deliberately does not pay.",
+  "triggers": [
+    "buy this item",
+    "place the order",
+    "check out with this in the cart",
+    "order this for me",
+    "complete the purchase"
+  ],
+  "goal_template": "buy this item",
+  "tags": ["shopping", "money"],
+  "match_threshold": 0.45,
+  "preconditions": [
+    {
+      "id": "cart_not_empty",
+      "expect": ["cart", "basket", "order"],
+      "reject": ["your cart is empty", "no items"],
+      "notes": "A recipe that starts on an empty cart would fail on its first step in a way that reads like the site being broken."
+    },
+    {
+      "id": "not_logged_out",
+      "reject": ["sign in to continue", "please log in"],
+      "is_drift": true,
+      "notes": "A login wall at the wrong point means the recipe was written for a different session shape."
+    }
+  ],
+  "steps": [
+    {
+      "id": "review_cart",
+      "tool": "browse_click",
+      "args": { "selector": "Checkout" },
+      "intent": "go to checkout from the cart",
+      "expect": ["shipping", "payment", "order summary"],
+      "reject": ["error"],
+      "gated": false,
+      "notes": "Safe: nothing is charged until the last step of the last page."
+    },
+    {
+      "id": "confirm_shipping",
+      "tool": "browse_click",
+      "args": { "selector": "Continue to payment" },
+      "intent": "confirm the shipping address",
+      "expect": ["payment", "card", "billing"],
+      "reject": ["enter a shipping address", "address required"]
+    },
+    {
+      "id": "review_total",
+      "tool": "browse_extract",
+      "args": { "selector": ".order-total" },
+      "intent": "read the total so a human can check it before paying",
+      "expect": ["total"],
+      "gated": false,
+      "notes": "A read. The number is the whole point of stopping here."
+    },
+    {
+      "id": "place_the_order",
+      "tool": "browse_click",
+      "args": { "selector": "Place order" },
+      "intent": "pay: place the order and charge the card",
+      "expect": ["order confirmed", "thank you", "order number", "receipt"],
+      "reject": ["payment failed", "card declined", "declined"],
+      "notes": "The one irreversible step. Everything above it was reversible, which is the entire reason this recipe is shaped the way it is."
+    }
+  ]
+}

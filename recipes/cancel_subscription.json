@@ -1,0 +1,49 @@
+{
+  "name": "cancel_subscription",
+  "description": "Cancel a membership or subscription, confirming when asked.",
+  "triggers": [
+    "cancel my subscription",
+    "cancel the membership",
+    "unsubscribe from the plan",
+    "end my premium plan",
+    "stop the monthly billing"
+  ],
+  "goal_template": "cancel my subscription",
+  "tags": ["account", "billing"],
+  "match_threshold": 0.45,
+  "preconditions": [
+    {
+      "id": "on_account_page",
+      "expect": ["account", "settings", "plan", "billing"],
+      "reject": ["page not found"],
+      "notes": "Cancel lives behind the account menu. Landing anywhere else means the site moved."
+    }
+  ],
+  "steps": [
+    {
+      "id": "open_plan",
+      "tool": "browse_click",
+      "args": { "selector": "Manage plan" },
+      "intent": "open the subscription settings",
+      "expect": ["subscription", "membership", "plan", "renews", "billing"],
+      "reject": ["no active plan"],
+      "gated": false
+    },
+    {
+      "id": "request_cancel",
+      "tool": "browse_click",
+      "args": { "selector": "Cancel plan" },
+      "intent": "start the cancellation flow",
+      "expect": ["confirm", "are you sure", "reason", "keep my plan", "cancelled"],
+      "reject": ["already cancelled"]
+    },
+    {
+      "id": "confirm_cancel",
+      "tool": "browse_click",
+      "args": { "selector": "Yes, cancel" },
+      "intent": "confirm the cancellation and end billing",
+      "expect": ["cancelled", "ended", "inactive", "access until", "subscription ended"],
+      "reject": ["could not cancel", "error"]
+    }
+  ]
+}
