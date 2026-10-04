@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Acme Hardware - your cart</title>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; }
+    .wrap { max-width: 640px; margin: 0 auto; padding: 24px; }
+    nav { padding: 12px 24px; background: #14532d; color: #fff; }
+    button { font: inherit; padding: 8px 14px; margin: 4px 4px 4px 0; }
+    .order-total { font-weight: 700; }
+  </style>
+</head>
+<body>
+  <nav>Acme Hardware &mdash; signed in as demo@example.invalid</nav>
+
+  <div class="wrap">
+    <h1>Your cart</h1>
+    <p>2 items in your cart:</p>
+    <ul>
+      <li>Cotton gloves, size M &mdash; $12.00</li>
+      <li>Anchor bolts, box of 50 &mdash; $18.00</li>
+    </ul>
+    <p class="order-total">Order total: $30.00</p>
+    <button id="checkout" type="button" onclick="go('checkout')">Checkout</button>
+  </div>
+
+  <script>
+    // This fixture is the real web as far as Errands is concerned: a served page
+    // that a real Chromium loads, clicks and reads. The tests that use it make
+    // no assertions about the simulator, and none about network access.
+    function go(page) {
+      window.location.href = new URL('shop_' + page + '.html', window.location.href).href;
+    }
+    // A charge is recorded on the page itself, so "did this purchase happen" is
+    // answered by the site rather than by anything the test wants to be true.
+    window.__charged = false;
+  </script>
+</body>
+</html>

@@ -28,6 +28,21 @@ def _norm(text: str) -> str:
     return " ".join(text.lower().replace(".", " ").replace(",", " ").split())
 
 
+def _strip_text_prefix(selector: str) -> str:
+    """Drop Playwright's ``text=`` / ``text="..."`` engine prefix.
+
+    Playwright reads ``text=Checkout`` as "the control whose visible text is
+    Checkout". This harness already matched on visible text, so it only has to
+    drop the prefix rather than reimplement the matching.
+    """
+    s = selector.strip()
+    for prefix in ('text="', "text='", "text="):
+        if s.lower().startswith(prefix):
+            rest = s[len(prefix):]
+            return rest[:-1] if rest.endswith(('"', "'")) and len(rest) > 1 else rest
+    return s
+
+
 @dataclass
 class Shop:
     """Scripted store. `page` is the current page name."""
@@ -92,12 +107,21 @@ class Shop:
     # ------------------------------------------------------------ resolution --
 
     def resolve(self, selector: str) -> str:
-        """Map a selector, ref, or visible label to a ref on the current page."""
+        """Map a selector, ref, or visible label to a ref on the current page.
+
+        Accepts Playwright's ``text=`` prefix because the recipes now use it.
+        The shipped recipes were written as bare visible text ("Checkout"),
+        which this harness resolved happily and a real browser does not:
+        ``locator("Checkout")`` looks for a <Checkout> tag and times out. Six of
+        the seven selectors across both recipes had that shape. ``text=`` is
+        Playwright's own spelling of "find it by what it says", so both
+        harnesses now mean the same thing by it.
+        """
         items = self._items()
         for ref, _tag, _role, _label in items:
             if selector == ref:
                 return ref
-        wanted = _norm(selector)
+        wanted = _norm(_strip_text_prefix(selector))
         for ref, _tag, _role, label in items:
             if _norm(label) == wanted:
                 return ref

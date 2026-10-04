@@ -23,7 +23,7 @@
     {
       "id": "open_plan",
       "tool": "browse_click",
-      "args": { "selector": "Manage plan" },
+      "args": { "selector": "text=Manage plan" },
       "intent": "open the subscription settings",
       "expect": ["subscription", "membership", "plan", "renews", "billing"],
       "reject": ["no active plan"],
@@ -32,7 +32,7 @@
     {
       "id": "request_cancel",
       "tool": "browse_click",
-      "args": { "selector": "Cancel plan" },
+      "args": { "selector": "text=Cancel plan" },
       "intent": "start the cancellation flow",
       "expect": ["confirm", "are you sure", "reason", "keep my plan", "cancelled"],
       "reject": ["already cancelled"]
@@ -40,7 +40,7 @@
     {
       "id": "confirm_cancel",
       "tool": "browse_click",
-      "args": { "selector": "Yes, cancel" },
+      "args": { "selector": "text=Yes, cancel" },
       "intent": "confirm the cancellation and end billing",
       "expect": ["cancelled", "ended", "inactive", "access until", "subscription ended"],
       "reject": ["could not cancel", "error"]

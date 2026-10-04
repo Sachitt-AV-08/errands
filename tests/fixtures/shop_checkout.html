@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Acme Hardware - checkout</title>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; }
+    .wrap { max-width: 640px; margin: 0 auto; padding: 24px; }
+    nav { padding: 12px 24px; background: #14532d; color: #fff; }
+    button { font: inherit; padding: 8px 14px; margin: 4px 4px 4px 0; }
+    .order-total { font-weight: 700; }
+  </style>
+</head>
+<body>
+  <nav>Acme Hardware &mdash; signed in as demo@example.invalid</nav>
+
+  <div class="wrap">
+    <h1>Checkout</h1>
+    <p>Order summary</p>
+    <ul>
+      <li>Cotton gloves, size M &mdash; $12.00</li>
+      <li>Anchor bolts, box of 50 &mdash; $18.00</li>
+    </ul>
+
+    <fieldset>
+      <legend>Shipping address</legend>
+      <label for="addr1">Address line 1</label>
+      <input id="addr1" value="1 Example Way" size="28">
+      <label for="city">City</label>
+      <input id="city" value="Exampleton" size="28">
+    </fieldset>
+
+    <button id="to-payment" type="button" onclick="go('payment')">
+      Continue to payment
+    </button>
+  </div>
+
+  <script>
+    function go(page) {
+      window.location.href = new URL('shop_' + page + '.html', window.location.href).href;
+    }
+  </script>
+</body>
+</html>

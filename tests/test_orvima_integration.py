@@ -359,7 +359,9 @@ def test_the_assembled_runner_gates_a_live_purchase_and_never_places_it() -> Non
     placed: list[str] = []
 
     def click(selector: str, **_):
-        placed.append(selector)
+        # Recorded as the label a human would read: recipes address controls with
+        # Playwright's `text=` prefix, which is what a real browser needs.
+        placed.append(selector[len("text="):].strip("\"'") if selector.startswith("text=") else selector)
         return {"ok": True}
 
     controller.click = click  # type: ignore[method-assign]

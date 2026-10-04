@@ -55,7 +55,21 @@ def run(shop: Shop, errands, policy, *, approver=None, goal: str = "buy this ite
 
 
 def clicked(shop: Shop) -> list[str]:
-    return [kw.get("selector") for verb, kw in shop.calls if verb == "click"]
+    """Every selector the recipe clicked, as the label a human would read.
+
+    Recipes address controls with Playwright's `text=` prefix, because bare
+    visible text like "Checkout" is not a selector a real browser can resolve -
+    `locator("Checkout")` looks for a <Checkout> tag and times out. Stripping the
+    prefix keeps these assertions about intent ("the charge was not clicked")
+    rather than about spelling.
+    """
+    return [_label(kw.get("selector")) for verb, kw in shop.calls if verb == "click"]
+
+
+def _label(selector: object) -> object:
+    if isinstance(selector, str) and selector.startswith("text="):
+        return selector[len("text="):].strip("\"'")
+    return selector
 
 
 # ------------------------------------------------------------------ refusals --
@@ -256,7 +270,7 @@ def test_the_steps_before_the_charge_run_without_asking(errands, policy) -> None
 
     run(shop, errands, policy, approver=ask)
 
-    asked_selectors = [r.args.get("selector") for r in asked]
+    asked_selectors = [_label(r.args.get("selector")) for r in asked]
     assert "#checkout" not in asked_selectors
     assert "#continue-payment" not in asked_selectors
     assert "Place order" in asked_selectors
@@ -275,7 +289,7 @@ def test_the_total_is_read_before_the_charge_is_proposed(errands, policy) -> Non
     extract_at = verbs.index("extract")
     place_at = next(
         i for i, (verb, kw) in enumerate(shop.calls)
-        if verb == "click" and kw.get("selector") == "Place order"
+        if verb == "click" and _label(kw.get("selector")) == "Place order"
     )
     assert extract_at < place_at, "the total was read after the charge was proposed"
 

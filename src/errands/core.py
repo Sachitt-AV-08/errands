@@ -382,15 +382,27 @@ class ErrandResult:
 def _page_text(browser: Any) -> str:
     """Everything readable on the page, lowercased, for expect/reject matching.
 
-    Snapshot text is the only view available without going through the browser's
-    extractor, and it is enough for the "are these words present" checks that
-    drift detection and verification actually need.
+    The snapshot's ``body`` is included, and it has to be. A snapshot describes
+    interactive elements: their labels, values, placeholders. Most of what a
+    recipe asserts on is prose that no element owns - "Order total: $30.00",
+    "payment declined", "your cart is empty". Reading only item fields meant
+    verification could not see any of it, so on a real site every step whose
+    `expect` named page prose failed, while the scripted shop in
+    `tests/support/shop.py` passed because it puts the same words on items.
+
+    Found by running the shipped recipe against a real browser: `review_total`
+    expected "total", the page plainly read "Order total: $30.00", and verify
+    reported "none of the expected text is on the page".
     """
     try:
         snap = browser.snapshot() or {}
     except Exception:
         return ""
-    parts: list[str] = [str(snap.get("title") or ""), str(snap.get("url") or "")]
+    parts: list[str] = [
+        str(snap.get("title") or ""),
+        str(snap.get("url") or ""),
+        str(snap.get("body") or ""),
+    ]
     for item in snap.get("items", []) or []:
         if not isinstance(item, Mapping):
             continue

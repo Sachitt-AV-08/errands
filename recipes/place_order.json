@@ -29,7 +29,7 @@
     {
       "id": "review_cart",
       "tool": "browse_click",
-      "args": { "selector": "Checkout" },
+      "args": { "selector": "text=Checkout" },
       "intent": "go to checkout from the cart",
       "expect": ["shipping", "payment", "order summary"],
       "reject": ["error"],
@@ -39,7 +39,7 @@
     {
       "id": "confirm_shipping",
       "tool": "browse_click",
-      "args": { "selector": "Continue to payment" },
+      "args": { "selector": "text=Continue to payment" },
       "intent": "confirm the shipping address",
       "expect": ["payment", "card", "billing"],
       "reject": ["enter a shipping address", "address required"]
@@ -56,7 +56,7 @@
     {
       "id": "place_the_order",
       "tool": "browse_click",
-      "args": { "selector": "Place order" },
+      "args": { "selector": "text=Place order" },
       "intent": "pay: place the order and charge the card",
       "expect": ["order confirmed", "thank you", "order number", "receipt"],
       "reject": ["payment failed", "card declined", "declined"],
