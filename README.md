@@ -41,8 +41,8 @@ before a charge when the plan says payment is next. Nothing about the call
 distinguishes those two cases:
 
 ```
-browse_click(selector="Continue")          -> low,      runs unattended
-browse_click(selector="Continue")          -> destructive, prompts
+browse_click(selector="text=Continue")     -> low,      runs unattended
+browse_click(selector="text=Continue")     -> destructive, prompts
   ... same call, plan="place order payment"
 ```
 
@@ -102,7 +102,7 @@ data file does, rather than skimmed the way code does.
   "triggers": ["cancel my subscription", "end my premium plan"],
   "preconditions": [{"id": "on_account_page", "expect": ["account", "settings"]}],
   "steps": [
-    {"id": "open_plan", "tool": "browse_click", "args": {"selector": "Manage plan"},
+    {"id": "open_plan", "tool": "browse_click", "args": {"selector": "text=Manage plan"},
      "intent": "open the subscription settings", "expect": ["subscription", "renews"]}
   ]
 }
@@ -116,6 +116,14 @@ data file does, rather than skimmed the way code does.
 - `unless_present` - skip the step if all of these are already on the page.
 - `gated` - `false` opts a step out of the gate. A read-only preamble.
 
+A `selector` must be something a browser can actually resolve. `text=Checkout`
+finds a control by its visible label; a bare `Checkout` does not work, because
+Playwright reads it as a `<Checkout>` tag name and waits out its timeout. Both
+shipped recipes were written as bare text until they were run against a real
+Chromium and failed on their first action. `tests/test_recipe_selectors.py` now
+resolves every selector a shipped recipe uses against a real browser, so a
+recipe cannot ship a form that only the scripted shop understands.
+
 Unknown keys are an error, not a warning. A misspelled `expectd` would otherwise
 produce a step that verifies nothing and reports success.
 
@@ -126,19 +134,39 @@ around by a recipe that reaches past it.
 ## Tests
 
 ```
-python -m pytest tests -q          # 75 tests
+python -m pytest tests -q
 ```
 
-`tests/test_end_to_end.py` is the one that matters: a real Sentinel `Policy`, the
-real bridge, the real shipped recipe, and a scripted store whose assertions are
-about money - what was charged, what was charged without asking, and what the
-human was shown when asked.
+No test count is recorded here. Every figure this file used to quote went stale
+within a day of being written, which is what a hand-maintained number is worth.
 
-That file contains its own controls, so a passing test cannot be credited to the
-wrong rule. `test_the_same_recipe_is_unrecognisable_as_a_purchase_without_plan_context`
-uses a bare "Continue" on a non-transactional page, because anything with "pay"
-in the label or "/checkout" in the URL is already gated by existing rules and
-would prove nothing about plan context.
+`tests/test_three_project_e2e.py` is the one that matters: a real Sentinel
+`Policy`, a real Chromium, and the real shipped recipe. The shop is served over
+HTTP by `tests/support/shop_server.py` because Chromium refuses relative
+navigation between `file://` URLs, so a file-backed fixture cannot be walked by
+clicking. The page records its own charge, so "the card was not charged" is
+answered by the site rather than by the test's expectations.
+
+Its controls are the point as much as its assertions.
+`test_the_recipe_reaches_the_irreversible_step_when_human_says_yes` runs the
+whole recipe with an approver who says yes to everything and requires the card
+to end up charged. Without it, every refusal assertion would also hold for a
+recipe that simply failed early and could never have charged anything - which is
+exactly what happened before verification learned to read the page body.
+
+`tests/test_end_to_end.py` covers the same ground against a scripted store,
+which is what makes it fast enough to run on every edit. Its controls stop a
+pass from being credited to the wrong rule:
+`test_the_same_recipe_is_unrecognisable_as_a_purchase_without_plan_context` uses
+a bare "Continue" on a non-transactional page, because anything with "pay" in the
+label or "/checkout" in the URL is already gated by existing rules and would
+prove nothing about plan context.
+
+`tests/test_recipe_selectors.py` resolves every selector a shipped recipe uses
+against a real browser, and `tests/test_shop_server.py` checks the fixture
+itself - that a real click really does navigate, and that the charge handler
+really does fire. Both exist because a green suite elsewhere was compatible with
+a fixture that could not be walked and a page that could not be charged.
 
 `tests/test_orvima_browser_contract.py` is the only file that opens a real
 Chromium. The rest of the bridge is tested against `FakeController`, which is
