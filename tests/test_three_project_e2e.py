@@ -21,7 +21,6 @@ rather than by the test's own expectations.
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import pytest
@@ -375,9 +374,10 @@ def test_the_plan_alone_changes_the_verdict(shop, server, policy, recipe) -> Non
 
 def test_the_three_imports_can_coexist_in_one_interpreter() -> None:
     """Cheap, and it catches a packaging regression before anything else does."""
-    import errands
     import orvima
     import sentinel
+
+    import errands
 
     assert errands.__version__ and orvima.__version__ and sentinel.__version__
     assert Path(errands.__file__).is_file()
@@ -389,7 +389,7 @@ def test_no_module_imports_another_projects_private_names() -> None:
     A `from sentinel.policy import _internal` would make a Sentinel refactor a
     breaking change for Errands, invisibly.
     """
-    for project, names in (
+    for _project, names in (
         ("orvima", ("orvima.browser", "orvima.sentinel_gate", "orvima.tools")),
         ("sentinel", ("sentinel.policy",)),
     ):

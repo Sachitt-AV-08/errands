@@ -43,7 +43,7 @@ class ShopServer:
     def url(self, page: str) -> str:
         return f"http://127.0.0.1:{self.port}/{page}"
 
-    def __enter__(self) -> "ShopServer":
+    def __enter__(self) -> ShopServer:
         self._thread.start()
         return self
 

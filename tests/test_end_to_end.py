@@ -17,13 +17,15 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "support"))
 
-from errands import ErrandRunner, ErrandState, RefusalReason, registry  # noqa: E402
 from shop import Shop  # noqa: E402
+
+from errands import ErrandRunner, ErrandState, RefusalReason, registry  # noqa: E402
 
 pytest.importorskip("sentinel", reason="sentinel not on path")
 
-from errands.sentinel_bridge import make_classifier  # noqa: E402
 from sentinel import Classifier, ClassifierMode, HashingEmbedder, Policy  # noqa: E402
+
+from errands.sentinel_bridge import make_classifier  # noqa: E402
 
 RECIPES = Path(__file__).resolve().parents[1] / "recipes"
 

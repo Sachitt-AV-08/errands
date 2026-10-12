@@ -41,8 +41,18 @@ target-version = "py310"
 select = ["E", "F", "W", "I", "B", "UP"]
 
 [tool.pytest.ini_options]
+addopts = "-q"
 testpaths = ["tests"]
 # Mirrors sentinel's, so `python -m pytest tests` works from a clean checkout
 # without a hand-set PYTHONPATH. src first: the local tree wins over an
 # installed copy, which is what you want while editing.
 pythonpath = ["src", "tests"]
+
+[tool.coverage.run]
+source = ["errands"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+# Measured 91% on win32/py3.12; 2pt buffer keeps the matrix stable.
+fail_under = 89

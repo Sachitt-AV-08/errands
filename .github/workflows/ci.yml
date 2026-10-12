@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install Playwright browsers
+        run: uv run playwright install --with-deps chromium
+      - name: Install orvima (local, pinned for reproducibility)
+        run: uv pip install "orvima @ git+https://github.com/Sachitt-AV-08/orvima.git@792aa06"
+      - name: Install sentinel (local, pinned)
+        run: uv pip install "sentinel @ git+https://github.com/Sachitt-AV-08/sentinel.git@ad90f5d"
+      - name: Install errands with dev extras
+        run: uv pip install -e ".[dev,orvima,sentinel]"
+      - name: Lint
+        run: uv run --no-sync ruff check src tests
+      - name: Test (with coverage gate)
+        run: uv run --no-sync pytest --cov=errands
+
+  build-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Build
+        run: uv build
+      - name: Smoke test wheel
+        run: |
+          WHEEL=$(ls dist/*.whl | head -1)
+          pip install "${WHEEL}[orvima,sentinel]"
+          python -c "import errands; print(errands.__version__)"

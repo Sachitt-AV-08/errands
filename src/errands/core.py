@@ -26,11 +26,11 @@ The three gates a step passes through
 
 from __future__ import annotations
 
-import json
 import re
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Callable, Iterable, Mapping, Protocol, Sequence
+from typing import Any, Protocol
 
 
 class ErrandState(str, Enum):
@@ -89,7 +89,7 @@ class Browser(Protocol):
 class Approver(Protocol):
     """Asks a human about one action. Returns True to proceed."""
 
-    def __call__(self, request: "ApprovalRequest") -> bool: ...
+    def __call__(self, request: ApprovalRequest) -> bool: ...
 
 
 @dataclass
@@ -511,7 +511,8 @@ class ErrandRunner:
                     ) from exc
                 continue
 
-            missing = _absent(pre.expect, page) if (pre.expect and not _any_present(pre.expect, page)) else []
+            cond = pre.expect and not _any_present(pre.expect, page)
+            missing = _absent(pre.expect, page) if cond else []
             unexpected = _present(pre.reject, page)
             if missing or unexpected:
                 failed.append((pre, missing, unexpected, None))
@@ -610,13 +611,17 @@ class ErrandRunner:
                 notes=dict(errand.tags and {} or {}),
                 history=list(history),
             )
-            context.notes = {f"next_step": errand.steps[index + 1].intent
-                             if index + 1 < len(errand.steps) else "end_of_errand",
-                             "triggers": ", ".join(errand.triggers)}
+            context.notes = {
+                "next_step": (errand.steps[index + 1].intent
+                              if index + 1 < len(errand.steps) else "end_of_errand"),
+                "triggers": ", ".join(errand.triggers),
+            }
 
             page = _page_text(self.browser)
             if step.unless_present and all(w.lower() in page for w in step.unless_present):
-                results.append(StepResult(step.id, ok=True, reason="precondition already met, skipped"))
+                results.append(
+                StepResult(step.id, ok=True, reason="precondition already met, skipped")
+            )
                 history.append(f"{step.id}:skipped")
                 continue
 
@@ -649,7 +654,9 @@ class ErrandRunner:
                     detail=exc.detail,
                 )
             except Exception as exc:  # noqa: BLE001 - the tool failing is a step failure
-                results.append(StepResult(step.id, ok=False, risk=risk, reason=f"tool raised: {exc}"))
+                results.append(
+                StepResult(step.id, ok=False, risk=risk, reason=f"tool raised: {exc}")
+            )
                 return ErrandResult(
                     errand=errand.name,
                     state=ErrandState.FAILED,

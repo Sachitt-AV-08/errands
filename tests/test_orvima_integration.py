@@ -22,15 +22,13 @@ import pytest
 pytest.importorskip("orvima", reason="orvima not on path")
 pytest.importorskip("sentinel", reason="sentinel not on path")
 
+import errands.core as core  # noqa: E402
 from errands.orvima_bridge import (  # noqa: E402
     GateApprover,
     OrvimaBrowser,
     ToolError,
     runner_for,
 )
-
-import errands.core as core  # noqa: E402
-
 
 # ------------------------------------------------------- a controller stand-in ----
 
@@ -245,7 +243,8 @@ def test_approving_lets_the_step_proceed() -> None:
 
 
 def test_declining_stops_the_step() -> None:
-    approver = GateApprover(gate_for(FakeController(url="https://shop.example/payment")), "s1", timeout=5)
+    ctrl = FakeController(url="https://shop.example/payment")
+    approver = GateApprover(gate_for(ctrl), "s1", timeout=5)
     answer_with(approver, False)
     assert approver(approval()) is False
 
@@ -346,8 +345,9 @@ def test_the_assembled_runner_gates_a_live_purchase_and_never_places_it() -> Non
     No human answers, so the run must stop before the charge. This is the
     end-to-end claim that the three projects are actually joined up.
     """
-    from errands import Errand, Step, registry
     from pathlib import Path
+
+    from errands import registry
 
     recipes = registry(Path(__file__).resolve().parents[1] / "recipes")
     controller = FakeController(url="https://shop.example/cart")
@@ -361,7 +361,10 @@ def test_the_assembled_runner_gates_a_live_purchase_and_never_places_it() -> Non
     def click(selector: str, **_):
         # Recorded as the label a human would read: recipes address controls with
         # Playwright's `text=` prefix, which is what a real browser needs.
-        placed.append(selector[len("text="):].strip("\"'") if selector.startswith("text=") else selector)
+        if selector.startswith("text="):
+            placed.append(selector[len("text="):].strip("\"'"))
+        else:
+            placed.append(selector)
         return {"ok": True}
 
     controller.click = click  # type: ignore[method-assign]

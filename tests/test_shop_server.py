@@ -14,9 +14,8 @@ import pytest
 
 pytest.importorskip("orvima", reason="orvima not on path")
 
-from support.shop_server import ShopServer  # noqa: E402
-
 from orvima.browser import BrowserController  # noqa: E402
+from support.shop_server import ShopServer  # noqa: E402
 
 
 @pytest.fixture(scope="module")

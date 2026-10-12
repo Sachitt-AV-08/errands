@@ -27,7 +27,6 @@ from errands import (
     score_match,
 )
 
-
 # ------------------------------------------------------------------- fakes ----
 
 
@@ -57,16 +56,29 @@ class FakeBrowser:
 
     _after: dict = {}
 
-    def click(self, selector: str, **_kw): return self._record("click", selector=selector)
-    def type(self, selector: str, text: str, **_kw): return self._record("type", selector=selector, text=text)
-    def fill(self, selector: str, text: str, **_kw): return self._record("fill", selector=selector, text=text)
-    def extract(self, selector: str, **_kw): return self._record("extract", selector=selector)
-    def wait_for(self, selector: str, timeout_ms: int = 10000, **_kw):
-        return self._record("wait", selector=selector)
-    def go_back(self, **_kw): return self._record("back")
-    def scroll(self, direction: str = "down", **_kw): return self._record("scroll", direction=direction)
+    def click(self, selector: str, **_kw) -> dict:
+        return self._record("click", selector=selector)
 
-    def navigate(self, url: str): return self._record("navigate", url=url)
+    def type(self, selector: str, text: str, **_kw) -> dict:
+        return self._record("type", selector=selector, text=text)
+
+    def fill(self, selector: str, text: str, **_kw) -> dict:
+        return self._record("fill", selector=selector, text=text)
+
+    def extract(self, selector: str, **_kw) -> dict:
+        return self._record("extract", selector=selector)
+
+    def wait_for(self, selector: str, timeout_ms: int = 10000, **_kw) -> dict:
+        return self._record("wait", selector=selector)
+
+    def go_back(self, **_kw) -> dict:
+        return self._record("back")
+
+    def scroll(self, direction: str = "down", **_kw) -> dict:
+        return self._record("scroll", direction=direction)
+
+    def navigate(self, url: str) -> dict:
+        return self._record("navigate", url=url)
 
 
 class FakePolicy:
@@ -234,10 +246,12 @@ def test_a_broken_precondition_probe_refuses_rather_than_passes() -> None:
 
 def test_plan_context_is_handed_to_the_classifier_on_every_step() -> None:
     """The whole point of Errands: the classifier knows which step this is."""
-    browser = FakeBrowser({"url": "https://x/", "title": "Account",
-                           "items": [{"ref": "e1", "label": "subscription"}]})
+    browser = FakeBrowser(
+        {"url": "https://x/", "title": "Account",
+         "items": [{"ref": "e1", "label": "subscription"}]})
     browser._after = {
-        "click": {"items": [{"ref": "e1", "label": "subscription confirm yes are you sure cancelled"}]},
+        "click": {"items": [{"ref": "e1",
+         "label": "subscription confirm yes are you sure cancelled"}]},
     }
     policy = FakePolicy()
     ErrandRunner(browser, classify=policy.evaluate).run(unsubscribe(), "cancel my subscription")
@@ -261,9 +275,11 @@ def test_a_step_is_gated_by_the_plan_not_just_the_action() -> None:
     already part of the cancellation, and prompting one step early is the cheap
     direction to be wrong in.
     """
-    browser = FakeBrowser({"url": "https://x/", "title": "Account",
-                           "items": [{"ref": "e1", "label": "subscription"}]})
-    browser._after = {"click": {"items": [{"ref": "e1", "label": "subscription confirm cancelled"}]}}
+    browser = FakeBrowser(
+        {"url": "https://x/", "title": "Account",
+         "items": [{"ref": "e1", "label": "subscription"}]})
+    browser._after = {"click": {"items": [{"ref": "e1",
+        "label": "subscription confirm cancelled"}]}}
 
     policy = FakePolicy(gate_on="confirm cancellation")
     ask = approver(True)
@@ -281,9 +297,11 @@ def test_a_step_is_gated_by_the_plan_not_just_the_action() -> None:
 
 def test_the_irreversible_click_never_runs_without_a_human() -> None:
     """The invariant that matters, stated once and checked three ways."""
-    browser = FakeBrowser({"url": "https://x/", "title": "Account",
-                           "items": [{"ref": "e1", "label": "subscription"}]})
-    browser._after = {"click": {"items": [{"ref": "e1", "label": "subscription confirm cancelled"}]}}
+    browser = FakeBrowser(
+        {"url": "https://x/", "title": "Account",
+         "items": [{"ref": "e1", "label": "subscription"}]})
+    browser._after = {"click": {"items": [{"ref": "e1",
+        "label": "subscription confirm cancelled"}]}}
     policy = FakePolicy(gate_on="confirm cancellation")
 
     result = ErrandRunner(browser, classify=policy.evaluate).run(
@@ -296,9 +314,11 @@ def test_the_irreversible_click_never_runs_without_a_human() -> None:
 
 
 def test_a_step_the_human_declines_stops_the_errand() -> None:
-    browser = FakeBrowser({"url": "https://x/", "title": "Account",
-                           "items": [{"ref": "e1", "label": "subscription"}]})
-    browser._after = {"click": {"items": [{"ref": "e1", "label": "subscription confirm cancelled"}]}}
+    browser = FakeBrowser(
+        {"url": "https://x/", "title": "Account",
+         "items": [{"ref": "e1", "label": "subscription"}]})
+    browser._after = {"click": {"items": [{"ref": "e1",
+        "label": "subscription confirm cancelled"}]}}
     policy = FakePolicy(gate_on="confirm cancellation")
     ask = approver(False)
 
@@ -324,9 +344,11 @@ def test_a_gated_step_with_no_approver_is_refused_not_run() -> None:
 
 
 def test_plan_context_travels_with_the_approval_request() -> None:
-    browser = FakeBrowser({"url": "https://x/", "title": "Account",
-                           "items": [{"ref": "e1", "label": "subscription"}]})
-    browser._after = {"click": {"items": [{"ref": "e1", "label": "subscription confirm cancelled"}]}}
+    browser = FakeBrowser(
+        {"url": "https://x/", "title": "Account",
+         "items": [{"ref": "e1", "label": "subscription"}]})
+    browser._after = {"click": {"items": [{"ref": "e1",
+        "label": "subscription confirm cancelled"}]}}
     policy = FakePolicy(gate_on="confirm cancellation")
     ask = approver(True)
     ErrandRunner(browser, classify=policy.evaluate, approver=ask).run(
@@ -419,9 +441,11 @@ def test_navigation_is_allowed_as_a_step() -> None:
 
 
 def test_a_successful_run_reports_every_step() -> None:
-    browser = FakeBrowser({"url": "https://x/", "title": "Account",
-                           "items": [{"ref": "e1", "label": "subscription"}]})
-    browser._after = {"click": {"items": [{"ref": "e1", "label": "subscription confirm cancelled"}]}}
+    browser = FakeBrowser(
+        {"url": "https://x/", "title": "Account",
+         "items": [{"ref": "e1", "label": "subscription"}]})
+    browser._after = {"click": {"items": [{"ref": "e1",
+        "label": "subscription confirm cancelled"}]}}
     result = ErrandRunner(browser).run(unsubscribe(), "cancel my subscription")
     assert result.state is ErrandState.DONE
     assert [s.step_id for s in result.steps] == ["open", "cancel", "confirm"]

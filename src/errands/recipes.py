@@ -15,10 +15,10 @@ from __future__ import annotations
 
 import importlib.util
 import json
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Iterable, Sequence
 
-from .core import Errand, Precondition, Step, ErrandError, RefusalReason
+from .core import Errand, ErrandError, Precondition, RefusalReason, Step
 
 #: Key names allowed to become `Step.gated`. A recipe may mark a step ungated,
 #: which is how a read-only preamble opts out of the gate; the gate still sees
@@ -136,7 +136,12 @@ def registry(*sources: str | Path | Iterable[Errand]) -> list[Errand]:
         items: Sequence[Errand]
         if isinstance(source, (str, Path)):
             p = Path(source)
-            items = load_dir(p) if p.is_dir() else ([load_json(p)] if p.suffix == ".json" else load_module(p))
+            if p.is_dir():
+                items = load_dir(p)
+            elif p.suffix == ".json":
+                items = [load_json(p)]
+            else:
+                items = [load_module(p)]
         else:
             items = list(source)
         out.extend(items)

@@ -8,7 +8,8 @@ meet, and it imports both. Errands stays testable with a 15-line fake;
 
 from __future__ import annotations
 
-from typing import Any, Callable, Mapping
+from collections.abc import Callable, Mapping
+from typing import Any
 
 from sentinel.policy import Policy
 

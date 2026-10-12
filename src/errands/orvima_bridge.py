@@ -32,13 +32,13 @@ from __future__ import annotations
 
 import threading
 import time
-from typing import Any, Callable, Mapping
+from collections.abc import Callable, Mapping
+from typing import Any
 
 from sentinel.policy import Policy
 
 from .core import ApprovalRequest, Errand, ErrandRunner, PlanContext
 from .sentinel_bridge import make_classifier
-
 
 # --------------------------------------------------------------- browser -----
 
@@ -276,7 +276,9 @@ class GateApprover:
                 return False
             time.sleep(self.poll)
 
-    def _emit(self, kind: str, request_id: str, request: ApprovalRequest | None, **extra: Any) -> None:
+    def _emit(
+        self, kind: str, request_id: str, request: ApprovalRequest | None, **extra: Any
+    ) -> None:
         event = {
             "type": kind,
             "request_id": request_id,
