@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Install Playwright browsers
-        run: uv run playwright install --with-deps chromium
+        run: uvx playwright install --with-deps chromium
       - name: Install orvima (local, pinned for reproducibility)
         run: uv pip install "orvima @ git+https://github.com/Sachitt-AV-08/orvima.git@792aa06"
       - name: Install sentinel (local, pinned)
