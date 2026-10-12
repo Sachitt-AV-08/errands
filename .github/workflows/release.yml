@@ -29,16 +29,16 @@ jobs:
           python-version: "3.12"
 
       - name: Install Playwright browsers
-        run: uv run playwright install --with-deps chromium
+        run: uvx playwright install --with-deps chromium
 
       - name: Install orvima (pinned)
         run: uv pip install "orvima @ git+https://github.com/Sachitt-AV-08/orvima.git@792aa06"
 
       - name: Install sentinel (pinned)
-        run: uv pip install "sentinel @ git+https://github.com/Sachitt-AV-08/sentinel.git@75ae3fd"
+        run: uv pip install "sentinel @ git+https://github.com/Sachitt-AV-08/sentinel.git@ce2c6a4"
 
-      - name: Install errands with dev extras
-        run: uv pip install -e ".[dev,orvima,sentinel]"
+      - name: Install dev deps and errands (no deps, orvima/sentinel pre-installed via git)
+        run: uv pip install pytest pytest-cov ruff && uv pip install -e . --no-deps
 
       - name: Lint
         run: uv run --no-sync ruff check src tests
