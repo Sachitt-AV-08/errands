@@ -24,8 +24,8 @@ jobs:
         run: uv pip install "orvima @ git+https://github.com/Sachitt-AV-08/orvima.git@792aa06"
       - name: Install sentinel (local, pinned)
         run: uv pip install "sentinel @ git+https://github.com/Sachitt-AV-08/sentinel.git@f275dc6"
-      - name: Install errands with dev extras (no deps, uses pre-installed orvima/sentinel)
-        run: uv pip install -e . --no-deps --extra dev --extra orvima --extra sentinel
+      - name: Install errands (no deps, orvima/sentinel pre-installed via git)
+        run: uv pip install -e . --no-deps
       - name: Lint
         run: uv run --no-sync ruff check src tests
       - name: Test (with coverage gate)
