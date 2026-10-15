@@ -1,0 +1,10 @@
+{
+  "gate": {
+    "tool": "browse_click",
+    "args": { "selector": "text=Confirm payment" },
+    "allowed": false,
+    "risk": "destructive",
+    "reason": "irreversible or financial action detected (plan context: place_order payment)",
+    "transcript": "tool: browse_click\nargs: {\"selector\": \"text=Confirm payment\"}\nallowed: False\nrisk: destructive\nreason: irreversible or financial action detected (plan context: place_order payment)\nneeds_human: True"
+  }
+}

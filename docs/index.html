@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Errands — Narrow Goals, Fixed Verified Recipes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a class="brand" href="/">
+        <img src="mark.svg" alt="" width="32" height="32">
+        <span>Errands</span>
+      </a>
+      <nav class="navlinks">
+        <a href="#install">Install</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#measured">Measured</a>
+        <a href="https://github.com/Sachitt-AV-08/errands" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero reveal">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow">MIT &middot; no generative planning &middot; plan-aware gating</p>
+          <h1>Goals that match a recipe, or they don't run.</h1>
+          <p class="lede">
+            Errands runs narrow goals as fixed, verified recipe sequences. A goal matches a recipe
+            or it does not — and when it does not, Errands says so. No generative planning.
+            Every step is verified against the page, and a plan-aware gate (Sentinel) classifies
+            each action in the context of what comes next.
+          </p>
+
+          <div class="cta">
+            <a class="btn primary" href="#install">Install</a>
+            <a class="btn secondary" href="#measured">See measured results</a>
+          </div>
+
+          <div class="installbox">
+            <div class="tabs" role="tablist" aria-label="Install command">
+              <button class="tab active" data-os="win" role="tab" aria-selected="true">Windows</button>
+              <button class="tab" data-os="unix" role="tab" aria-selected="false">macOS / Linux</button>
+              <button class="tab" data-os="src" role="tab" aria-selected="false">From source</button>
+            </div>
+            <pre><code id="installcmd-hero">irm https://raw.githubusercontent.com/Sachitt-AV-08/errands/main/install.ps1 | iex</code></pre>
+            <p class="installnote" id="installnote-hero">
+              Installs the v0.1.0 release &mdash; 111 tests, 89% coverage gate.
+            </p>
+          </div>
+        </div>
+
+        <div class="hero-proof">
+          <div class="runner highlight">
+            <div class="runnerhead">
+              <span class="goal">place order → payment</span>
+              <span class="stepcount">held at confirmation</span>
+            </div>
+            <div class="term" id="term-gate-hero" role="region" aria-label="A payment click held by the plan-aware gate" aria-live="off"></div>
+            <p class="runnerfoot">
+              The plan context made a plain "Continue" click <code>destructive</code> because payment was next.
+              Sentinel recorded its advisory margin; the deterministic layer decided.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="how reveal">
+      <div class="container">
+        <h2>The three gates</h2>
+        <div class="gates">
+          <div class="gate">
+            <div class="gatenum">1</div>
+            <div class="gatetext">
+              <h3>Preflight</h3>
+              <p>Before step one: the page must match the recipe's preconditions. Drift outranks a plain miss —
+              an expired session has no cart, no plan, no account; reporting "expected cart, found none"
+              sends someone hunting for the wrong thing.</p>
+            </div>
+          </div>
+          <div class="gate">
+            <div class="gatenum">2</div>
+            <div class="gatetext">
+              <h3>Sentinel (plan-aware)</h3>
+              <p>Every step: the action is classified with the <em>full plan context</em> — errand name, goal,
+              this step's intent, and what comes next. A click on "Continue" is <code>low</code> in isolation
+              and <code>destructive</code> when the plan says payment is next. The deterministic layer decides;
+              the classifier (AUC 0.5378 = coin flip) stays ADVISORY.</p>
+            </div>
+          </div>
+          <div class="gate">
+            <div class="gatenum">3</div>
+            <div class="gatetext">
+              <h3>Verify</h3>
+              <p>After every step: the step did what it claimed. Any <code>expect</code> word present = success.
+              Any <code>reject</code> word present = definitive failure. <code>unless_present</code> skips steps
+              already done. A step that cannot verify stops the run — there is no "continue anyway".</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="refusal-box">
+          <h3>Refusals are named</h3>
+          <table>
+            <thead><tr><th>Reason</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><code>no_match</code></td><td>no recipe fits the goal confidently</td></tr>
+              <tr><td><code>ambiguous</code></td><td>two recipes fit equally well — a question, not a coin flip</td></tr>
+              <tr><td><code>precondition_failed</code></td><td>the page is not what the recipe expects</td></tr>
+              <tr><td><code>drift</code></td><td>the page changed under the recipe</td></tr>
+              <tr><td><code>unsafe</code></td><td>a step needs a human and did not get one</td></tr>
+              <tr><td><code>verification_failed</code></td><td>a step ran and could not prove itself</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="measured" class="facts reveal">
+      <div class="container">
+        <h2>Measured, not claimed</h2>
+        <div class="stats">
+          <div class="stat"><b>111</b><span>tests, 5 files</span></div>
+          <div class="stat"><b>~1.4k</b><span>lines of source</span></div>
+          <div class="stat"><b>89%</b><span>coverage gate</span></div>
+          <div class="stat"><b>3/3</b><span>gates enforced per step</span></div>
+        </div>
+        <p class="footnote">
+          Reproduce them yourself:
+          <code>python -m pytest --cov=errands</code> (89% gate),
+          <code>python -m ruff check src tests</code>.
+        </p>
+        <p class="footnote honest">
+          The e2e test runs a real Chromium against a scripted shop server. The shop records its own charge,
+          so "the card was not charged" is answered by the site. Selectors are resolved against a real browser
+          in <code>test_recipe_selectors.py</code> — recipes cannot ship forms only the fixture understands.
+        </p>
+      </div>
+    </section>
+
+    <section id="install" class="install reveal">
+      <div class="container">
+        <h2>Install</h2>
+        <p class="lede-small">Core has no dependencies. Extras add Sentinel (gate) and/or Orvima (browser).</p>
+
+        <div class="installbox">
+          <div class="tabs" role="tablist" aria-label="Install command">
+            <button class="tab active" data-os="win" role="tab" aria-selected="true">Windows</button>
+            <button class="tab" data-os="unix" role="tab" aria-selected="false">macOS / Linux</button>
+            <button class="tab" data-os="src" role="tab" aria-selected="false">From source</button>
+          </div>
+          <pre><code id="installcmd">irm https://raw.githubusercontent.com/Sachitt-AV-08/errands/main/install.ps1 | iex</code></pre>
+          <p class="installnote" id="installnote">
+            Installs the v0.1.0 release &mdash; 111 tests, 89% coverage gate.
+          </p>
+        </div>
+
+        <div class="install-opts">
+          <h3>Extras</h3>
+          <pre><code># Core only (steps run, nothing gated)
+irm https://raw.githubusercontent.com/Sachitt-AV-08/errands/main/install.ps1 | iex
+
+# With Sentinel gate (needs local Ollama nomic-embed-text for semantics)
+irm https://raw.githubusercontent.com/Sachitt-AV-08/errands/main/install.ps1 | iex -- --no-sentinel=false
+
+# With Orvima browser (your Chrome/Edge/Brave, persistent profile)
+irm https://raw.githubusercontent.com/Sachitt-AV-08/errands/main/install.ps1 | iex -- --no-orvima=false
+
+# Full stack
+irm https://raw.githubusercontent.com/Sachitt-AV-08/errands/main/install.ps1 | iex -- --no-sentinel=false --no-orvima=false</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="recipes" class="recipes reveal">
+      <div class="container">
+        <h2>Recipes are data (JSON)</h2>
+        <p class="footnote">A recipe checked against a real site gets reviewed and diffed like a data file, not skimmed like code.</p>
+        <pre><code>{
+  "name": "cancel_subscription",
+  "triggers": ["cancel my subscription", "end my premium plan"],
+  "preconditions": [{ "id": "on_account_page", "expect": ["account", "settings"] }],
+  "steps": [
+    { "id": "open_plan", "tool": "browse_click",
+      "args": { "selector": "text=Manage plan" },
+      "intent": "open the subscription settings",
+      "expect": ["subscription", "renews"] }
+  ]
+}</code></pre>
+        <ul>
+          <li><code>expect</code> — any one word present = success (acceptable wordings, not conjunction)</li>
+          <li><code>reject</code> — word presence = definitive failure (checked first)</li>
+          <li><code>unless_present</code> — skip step if all these words are already on the page</li>
+          <li><code>gated: false</code> — opt a read-only step out of the Sentinel gate</li>
+        </ul>
+        <p>Unknown keys are an error, not a warning. A misspelled <code>expectd</code> would otherwise
+        produce a step that verifies nothing and reports success.</p>
+      </div>
+    </section>
+
+    <section id="transcript" class="transcript reveal">
+      <div class="container">
+        <h2>Real e2e run (captured, not composed)</h2>
+        <p class="footnote">This transcript is fetched from <code>transcript.json</code> at page load.</p>
+
+        <div class="runner highlight">
+          <div class="runnerhead">
+            <span class="goal">buy this item</span>
+            <span class="stepcount">held at payment confirmation</span>
+          </div>
+          <div class="term" id="term-gate" role="region" aria-label="A payment confirmation held by the gate" aria-live="off"></div>
+          <p class="runnerfoot">
+            The recipe reached the irreversible step. Sentinel classified the confirmation click as
+            <code>destructive</code> (plan context: payment next). The gate held for a human.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>MIT Licensed &middot; <a href="https://github.com/Sachitt-AV-08/errands">GitHub</a> &middot; No tracking, no analytics, no external requests</p>
+    </div>
+  </footer>
+
+  <script src="main.js?v=2"></script>
+</body>
+</html>
